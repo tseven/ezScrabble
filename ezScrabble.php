@@ -10,12 +10,44 @@ class Scrabble {
 			$words = explode("\r\n", file_get_contents($dictionary_file));
 			$list = array();
 			foreach($words as $v) {
-				$list[$v] = true;
+				$list[strtolower($v)] = true;
 			}
 			$this->wordlist = $list;
 		} else {
 			return false;
 		}
+	}
+	function get_words($word){
+		$this->letters = $word;
+		foreach($this->wordlist as $k=>$v){
+			if($this->has_letters($k, $this->prefix.$this->letters.$this->suffix) && ctype_alnum($k)){
+				$prefix_pattern = $this->prefix;
+				$suffix_pattern = $this->suffix;
+				$word_pattern = "([a-zA-Z0-9]+?)";
+				$regexp = "/{$prefix_pattern}{$word_pattern}{$suffix_pattern}/i";
+				if(preg_match($regexp, $k) && $this->is_word($k)){
+					if(ctype_alnum($this->prefix)){
+						$is_match = false;
+						if(substr($k, 0, strlen($this->prefix)) == $this->prefix){
+							$is_match = true;
+						}
+					}
+					if(ctype_alnum($this->suffix)){
+						if(substr($k, 0 - strlen($this->suffix)) == $this->suffix){
+							$is_match = true;
+						}
+					}
+					if($is_match == true || !ctype_alnum($this->prefix) && !ctype_alnum($this->suffix)){
+						$this->solved[] = $k;
+					}
+				}
+			}
+		}
+		$results = array();
+		foreach($this->solved as $v){
+			$results[] =  $v;
+		}
+		return $results;
 	}
 	function calculate_points($word){
 		$letters = str_split($word);
@@ -60,35 +92,6 @@ class Scrabble {
 			return false;
 		}
 	}
-	function char_add($digits,$string,$char){ 
-	    if($string{$char} <> $this->lastchar($digits)){ 
-	        $string{$char} = $digits{strpos($digits,$string{$char})+1}; 
-	        return $string; 
-	    }else{ 
-	        $string = $this->changeall($string,$digits{0},$char); 
-	        return $this->char_add($digits,$string,$char-1); 
-	    } 
-	} 
-	function lastchar($string){ 
-	    return $string{strlen($string)-1}; 
-	} 
-	function changeall($string,$char,$start = 0,$end = 0){ 
-	    if($end == 0) $end = strlen($string)-1; 
-	    for($i=$start;$i<=$end;$i++){ 
-	        $string{$i} = $char; 
-	    } 
-	    return $string; 
-	} 
-	function get_words($letters){
-		$this->letters = $letters;
-		$unique = implode("",array_unique(str_split($letters)));
-		$matches = array();
-		$combinations = array();
-		for($i = 1; $i <= strlen($unique); $i++){
-			$this->permutations($unique, $i); 
-		}
-		return $this->solved;
-	}
 	function has_letters($word, $letters){
 		foreach (count_chars($word, 1) as $i => $val) {
 			$wordcount[chr($i)] = $val;
@@ -104,21 +107,8 @@ class Scrabble {
 		}
 		return $go;
 	}
-	function permutations($letters,$num){ 
-	    $last = str_repeat($letters{0},$num); 
-	    $result = array(); 
-	    while($last != str_repeat($this->lastchar($letters),$num)){
-	        if($this->is_word($this->prefix.$last.$this->suffix) && $this->has_letters($last, $this->letters)){
-	        	$this->solved[] = $last;
-	        }
-	        $last = $this->char_add($letters,$last,$num-1); 
-	    } 
-	} 
 	function set_var($name, $value){
 		$this->$name = $value;
-	}
-	function get_var($name){
-		return $this->$name;
 	}
 }
 ?>
