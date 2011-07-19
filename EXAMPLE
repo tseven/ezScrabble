@@ -1,0 +1,12 @@
+##ezScrabble by s0up(mike@haxt.net)##
+
+$scrabble = new Scrabble("wordlist");
+
+$letters = "adoomfcs";
+$prefix = "";
+$suffix = "re";
+
+$scrabble->set_var("prefix", $prefix);
+$scrabble->set_var("suffix", $suffix);
+
+print_r($scrabble->get_words($letters));
