@@ -23,8 +23,8 @@ class Scrabble {
 			if($this->has_letters($k, $this->prefix.$this->letters.$this->suffix) && ctype_alnum($k)){
 				$prefix_pattern = $this->prefix;
 				$suffix_pattern = $this->suffix;
-				$word_pattern = "([a-zA-Z0-9]+?)";
-				$regexp = "/{$prefix_pattern}{$word_pattern}{$suffix_pattern}/i";
+				$word_pattern = "([a-z]+?)";
+				$regexp = "/{$prefix_pattern}{$word_pattern}{$suffix_pattern}/";
 				if(preg_match($regexp, $k) && $this->is_word($k)){
 					if(ctype_alnum($this->prefix)){
 						$is_match = false;
@@ -93,19 +93,22 @@ class Scrabble {
 		}
 	}
 	function has_letters($word, $letters){
-		foreach (count_chars($word, 1) as $i => $val) {
-			$wordcount[chr($i)] = $val;
-		}	
-		foreach(count_chars($letters, 1) as $k=>$v){
-			$lettercount[chr($k)] = $v;
-		}
-		$go = true;
-		foreach($wordcount as $k=>$v){
-			if($lettercount[$k] < $v){
-				$go = false;
+		$count = 0;
+		$wordlen = strlen($word);
+		/* check to see if each letter of the word is inside our pool of letters */
+		for ($i=0; $i < $wordlen; $i++) { 
+			$wletter = substr($word, $i, 1);
+			$pos = strpos($letters, $wletter);
+			/* if the letter is found, remove it from the pool */
+			if ($pos !== false) {
+				$letters = substr_replace($letters, '', $pos, 1);
+				$count++;
+			}else{
+				/* we're missing a letter, stop the search */
+				return false;
 			}
 		}
-		return $go;
+		return $count == $wordlen ? true : false;
 	}
 	function set_var($name, $value){
 		$this->$name = $value;
